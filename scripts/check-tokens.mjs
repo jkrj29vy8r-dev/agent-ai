@@ -37,7 +37,7 @@ const RULES = [
   { name: "mărime de text arbitrară", re: /\btext-\[\d/g },
   { name: "paleta implicită Tailwind", re: new RegExp(`\\b(?:${COLOR_UTILS})-(?:${PALETTE})(?:-\\d{2,3})?\\b`, "g") },
   { name: "gradient", re: /\bbg-(?:gradient-to|linear|radial|conic)-/g },
-  { name: "emoji (folosește iconițe Lucide)", re: /\p{Extended_Pictographic}/gu },
+  { name: "emoji (folosește iconițe Lucide)", re: /(?![©®™])\p{Extended_Pictographic}/gu },
 ]
 
 function walk(dir, out = []) {

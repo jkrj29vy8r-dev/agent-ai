@@ -57,6 +57,14 @@ const config = {
         ring: v("lamp-ring"),
       },
 
+      // Materialele centralei (panoul 3D, ilustrații): alama plăcuțelor,
+      // hârtia agendei, ecranul agentului.
+      enamel: v("enamel"),
+      bakelite: v("bakelite"),
+      brass: { DEFAULT: v("brass"), foreground: v("brass-foreground") },
+      paper: { DEFAULT: v("paper"), foreground: v("paper-foreground") },
+      screen: { DEFAULT: v("screen"), foreground: v("screen-foreground") },
+
       // Cablurile canalelor: aceleași culori peste tot în produs.
       channel: {
         phone: v("channel-phone"),
@@ -195,8 +203,18 @@ const config = {
         spin: {
           to: { transform: "rotate(360deg)" },
         },
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
       },
       animation: {
+        "accordion-down": `accordion-down ${v("motion-fast")} ${v("curve-settle")} 1 both`,
+        "accordion-up": `accordion-up ${v("motion-fast")} ${v("curve-settle")} 1 both`,
         "lamp-on": `lamp-on ${v("motion-instant")} ${v("curve-switch")} 1 both`,
         "cable-plug": `cable-plug ${v("motion-slow")} ${v("curve-settle")} 1 both`,
         "plug-seat": `plug-seat ${v("motion-fast")} ${v("curve-switch")} 1 both`,

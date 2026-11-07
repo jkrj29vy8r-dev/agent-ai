@@ -56,6 +56,20 @@ Componentele folosesc doar numele. Vezi regula 2 din `CLAUDE.md`.
 Lampa nu e culoare de brand și nu se folosește pentru text pe fundal deschis (contrast
 1.8:1). Starea pe care o semnalează e scrisă mereu și în text.
 
+### Materialele centralei
+
+Pentru panoul 3D și ilustrații. Sunt materiale fizice, deci nu se inversează noaptea ca
+`primary`: doar se întunecă puțin.
+
+| Token | Light | Dark | Rol |
+| --- | --- | --- | --- |
+| `enamel` | `#E2E8E1` | `#26302B` | smalțul panoului |
+| `bakelite` | `#1E4D3B` | `#1E4D3B` | picioare, coperta agendei, mufa agentului |
+| `brass` / `brass-foreground` | `#B39A62` / `#2E2614` | `#A38D5B` / `#2E2614` | plăcuțele gravate (≥ 4.5:1) |
+| `paper` / `paper-foreground` | `#F7F5EE` / `#1C2420` | `#D6D3C8` / `#1C2420` | paginile agendei |
+| `screen` / `screen-foreground` | `#1C2420` / `#E2E8E1` | `#0F1412` / `#C5CFC7` | ecranul agentului |
+| `contact-shadow` | `#1C2420` | `#0F1412` | umbra de contact de sub panou |
+
 ### Cablurile canalelor
 
 Fixe în tot produsul: mufă, cablu, grafic, filtru, legendă.
@@ -192,5 +206,25 @@ Lucide, linie de 1.5px (setată global pe `svg.lucide`), 16px în butoane. Nicio
 - emoji ca iconițe;
 - lampa folosită ca simplă decorațiune sau culoare de brand.
 
-**Momentul wow** (V2) e panoul 3D din hero: singurul loc cu efecte. Restul produsului e
-liniștit și foarte îngrijit.
+## Panoul 3D din hero
+
+**Momentul wow** e panoul 3D din hero: singurul loc cu efecte. Restul produsului e liniștit
+și foarte îngrijit, fără animații la scroll.
+
+- **Construcție:** React Three Fiber + drei (`RoundedBox`, `ContactShadows`), geometrie
+  procedurală, fără model descărcat. Culorile vin din tokeni, textele sunt desenate în Archivo.
+- **Lumină:** emisferică moale + o lumină direcțională, `flat` (fără tone mapping, ca
+  tokenii să arate ca pe pagină), materiale mate (rugozitate 0.55–0.95, metal ≤ 0.12), fără
+  hartă de mediu, deci fără reflexii lucioase. Lampa aprinsă are o lumină punctuală caldă,
+  slabă.
+- **Secvența** (`TIMELINE` în `scenarios.ts`, sub 5 secunde, o singură dată): lampa canalului
+  se aprinde (0.3s) → cablul canal → agent, cu greutate (0.55–1.6s) → „caută locuri libere”
+  (1.75s) → „ține ora” (2.75s) → cablul agent → agendă (2.85–3.8s) → rândul cu bifă verde
+  (3.95s). „Alt client” o reia cu alt canal.
+- **Mouse:** panoul se înclină cu cel mult 6°. Fără rotire automată. Randare la cerere
+  (`frameloop="demand"`): cât nu se mișcă nimic, nu consumă.
+- **Imagine statică** (`public/hero/*.webp`, generată cu `npm run capture:hero`): cu
+  prefers-reduced-motion, fără WebGL, cu Save-Data, sub 768px fără WebGL bun sau pe
+  telefoane slabe. Starea de așteptare servește și ca imagine cât se încarcă scena.
+- **Accesibilitate:** scena are `role="img"` cu descrierea secvenței, iar pașii și rândul din
+  agendă există ca text HTML sub panou.

@@ -36,6 +36,7 @@ npm run db:start       # Supabase local (Docker)
 npm run db:reset       # reaplică toate migrațiile pe baza locală
 npm run db:test        # testele pgTAP din supabase/tests (inclusiv paznicul RLS)
 npm run db:types       # regenerează src/lib/supabase/database.types.ts
+npm run capture:hero   # regenerează imaginile statice ale panoului 3D (cu site-ul pornit)
 ```
 
 ## Structură
@@ -45,13 +46,17 @@ src/
   app/                    rute (App Router); globals.css = valorile tuturor tokenilor
   components/ui/          componente shadcn/ui, trecute pe tokenii Centralei
   components/centrala/    componentele-semnătură: Lamp, Plug, Cable, ChannelPlate, ThemeSwitch
+  components/landing/     secțiunile landing page-ului; hero/ = panoul 3D (React Three Fiber + drei)
   lib/supabase/           client.ts (browser), server.ts (RSC/acțiuni), admin.ts (cheie secretă), proxy.ts
   lib/channels.ts         cele trei canale: etichetă, iconiță, clasele de culoare
+  lib/verticals.ts        domeniile (banda „Pentru cine” și formularul de pilot)
   lib/utils.ts            cn() cu tokenii înregistrați
   proxy.ts                reîmprospătează sesiunea Supabase
 supabase/
   migrations/             SQL versionat; singurul mod de a schimba schema
   tests/database/         teste pgTAP
+scripts/                  check-tokens.mjs, capture-hero.mjs
+public/hero/              imaginile statice ale panoului (generate, nu desenate de mână)
 tailwind.config.ts        numele tokenilor (utilitare) → variabile CSS
 DESIGN.md                 sistemul de design, pe larg
 ```
@@ -94,7 +99,12 @@ garanția asta o dă baza de date, nu codul aplicației.
    clientul.
 5. **Funcțiile `security definer`** au `set search_path = ''`, nume complet calificate și
    verifică singure `auth.uid()` și apartenența la firmă.
-6. **`npm run db:test` trebuie să treacă.** `supabase/tests/database/tenant_rls.test.sql`
+6. **Singura excepție: schema `platform`**, pentru datele platformei care nu aparțin unei
+   firme (de exemplu `platform.pilot_requests`, cererile din formularul de pilot, care vin
+   înainte să existe un tenant). Schema nu e expusă prin API, are RLS fără politici și e
+   accesibilă doar lui `service_role`, printr-o funcție din `public` cu `execute` doar pentru
+   `service_role`. Nu pune acolo nimic ce aparține unei firme.
+7. **`npm run db:test` trebuie să treacă.** `supabase/tests/database/tenant_rls.test.sql`
    pică automat dacă un tabel din `public` nu are `tenant_id` NOT NULL, cheia străină către
    `tenants` sau RLS. Pentru tabelele noi importante, adaugă și un test de izolare
    (utilizatorul firmei A nu vede rândurile firmei B).
@@ -169,12 +179,18 @@ Direcția vizuală e **centrala telefonică de epocă refăcută modern** (detal
      `channel-whatsapp` (albastru), e-mail `channel-email` (grafit). Folosește
      `CHANNELS` din `@/lib/channels`;
    - `accent` din shadcn e doar fundalul neutru de hover, nu un accent de culoare.
-6. **Fără umbre aruncate.** Adâncimea vine din bordura de 1px plus `shadow-plate` (linia
+6. **Scena 3D din hero își ia culorile tot din tokeni**, citiți la rulare cu
+   `readSceneColors()` (`src/components/landing/hero/scene-colors.ts`); textele de pe panou
+   sunt desenate în Archivo. Nu scrie culori în scenă. Materialele au tokeni proprii (`enamel`,
+   `bakelite`, `brass`, `paper`, `screen`), care nu se inversează noaptea ca `primary`. După
+   orice schimbare vizuală a panoului, rulează `npm run capture:hero`.
+7. **Fără umbre aruncate.** Adâncimea vine din bordura de 1px plus `shadow-plate` (linia
    deschisă sus). Singura strălucire e `shadow-lamp`.
-7. **De evitat** (cerut explicit de brief): gradienți violet-albastru, glassmorphism și
+8. **De evitat** (cerut explicit de brief): gradienți violet-albastru, glassmorphism și
    `backdrop-blur`, trei carduri identice într-o grilă, totul centrat, text cu gradient,
    etichete cu majuscule deasupra fiecărui titlu, săgeți la finalul butoanelor, emoji ca
-   iconițe. Iconițele sunt Lucide, cu linie de 1.5px (setată global).
+   iconițe. Iconițele sunt Lucide, cu linie de 1.5px (setată global). 3D există doar în hero;
+   restul paginilor e liniștit, fără animații la scroll.
 
 ## Înainte de a spune „gata”
 
@@ -182,4 +198,6 @@ Direcția vizuală e **centrala telefonică de epocă refăcută modern** (detal
 - Pentru schimbări de schemă: `npm run db:reset && npm run db:test` trec, iar tipurile sunt
   regenerate cu `npm run db:types`.
 - Pentru schimbări de interfață: verificat pe `/sistem` sau pe pagina afectată, în light și
-  dark, pe lățime de telefon (390px), fără scroll orizontal.
+  dark, de la 360px la 1440px, fără scroll orizontal.
+- Textele încă necunoscute se marchează cu `<Placeholder>` ([PREȚ], [CONDIȚII PILOT],
+  [CONTACT]); nu inventa prețuri, mărturii sau logo-uri de clienți.

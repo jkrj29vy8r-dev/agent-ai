@@ -91,6 +91,10 @@ export type Database = {
     }
     Views: { [_ in never]: never }
     Functions: {
+      submit_pilot_request: {
+        Args: { p_business_name: string; p_vertical: string; p_phone: string }
+        Returns: string
+      }
       create_tenant: {
         Args: { p_name: string; p_vertical?: string | null }
         Returns: Database["public"]["Tables"]["tenants"]["Row"]

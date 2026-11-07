@@ -53,6 +53,13 @@
   --cable-blue: #2b5d8f;
   --cable-graphite: #4a4f4c;
 
+  /* materialele panoului */
+  --brass-400: #b39a62;
+  --brass-900: #2e2614;
+  --paper-50: #f7f5ee;
+  --brass-night: #a38d5b;
+  --paper-night: #d6d3c8;
+
   /* stări */
   --signal-green: #2a7347;
   --signal-ochre: #8a5a0e;
@@ -132,6 +139,17 @@
   --lamp-off: var(--lamp-unlit);
   --lamp-ring: var(--graphite-700);
 
+  /* materialele centralei: plăcuțe de alamă, agenda, ecranul agentului */
+  --enamel: var(--enamel-200);
+  --bakelite: var(--bakelite-500);
+  --brass: var(--brass-400);
+  --brass-foreground: var(--brass-900);
+  --paper: var(--paper-50);
+  --paper-foreground: var(--graphite-900);
+  --screen: var(--graphite-900);
+  --screen-foreground: var(--enamel-200);
+  --contact-shadow: var(--graphite-900);
+
   /* cablurile canalelor */
   --channel-phone: var(--cable-red);
   --channel-whatsapp: var(--cable-blue);
@@ -206,6 +224,16 @@
   --lamp-halo: rgb(244 181 74 / 0.4);
   --lamp-off: var(--graphite-700);
   --lamp-ring: var(--night-400);
+
+  --enamel: var(--night-800);
+  --bakelite: var(--bakelite-500);
+  --brass: var(--brass-night);
+  --brass-foreground: var(--brass-900);
+  --paper: var(--paper-night);
+  --paper-foreground: var(--graphite-900);
+  --screen: var(--night-950);
+  --screen-foreground: var(--night-200);
+  --contact-shadow: var(--night-950);
 
   --channel-phone: var(--cable-red-night);
   --channel-whatsapp: var(--cable-blue-night);
