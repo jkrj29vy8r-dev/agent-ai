@@ -30,7 +30,9 @@ Next 16 diferă de ce știi: `middleware.ts` se numește acum **`proxy.ts`**, ia
 ```bash
 npm run dev            # server de dezvoltare
 npm run build          # build de producție
-npm run check          # typecheck + lint + check:tokens; rulează-l înainte de orice commit
+npm run check          # typecheck + lint + check:tokens + teste unitare; înainte de orice commit
+npm run test           # teste unitare (vitest)
+npm run test:db        # teste de integrare pe Supabase local (după db:start și db:reset)
 npm run check:tokens   # caută culori, umbre, raze, fonturi brute și paleta implicită Tailwind
 npm run db:start       # Supabase local (Docker)
 npm run db:reset       # reaplică toate migrațiile pe baza locală
@@ -50,6 +52,7 @@ src/
   lib/supabase/           client.ts (browser), server.ts (RSC/acțiuni), admin.ts (cheie secretă), proxy.ts
   lib/channels.ts         cele trei canale: etichetă, iconiță, clasele de culoare
   lib/verticals.ts        domeniile (banda „Pentru cine” și formularul de pilot)
+  lib/availability/       getAvailability (încarcă datele) + computeAvailability (calcul pur, testat)
   lib/utils.ts            cn() cu tokenii înregistrați
   proxy.ts                reîmprospătează sesiunea Supabase
 supabase/
@@ -172,6 +175,18 @@ create policy "services: proprietarul șterge" on public.services
   se poate alege și nu se poate prelungi, iar un hold expirat nu mai poate fi confirmat. Un
   hold expirat nu blochează pe nimeni: triggerul îl marchează `expired` când cineva vrea ora,
   iar `pg_cron` le curăță în fiecare minut.
+- **`period` include pauza de după serviciu** (`buffer_after_min`), ca și pauza să fie
+  apărată de constrângere. Ora de final afișată clientului = `lower(period)` + durata.
+- **Servicii cu mai multe resurse:** `service_resources.requirement` grupează resursele.
+  Același număr = alternative (Ana SAU Mihai), numere diferite = toate necesare (angajat ȘI
+  cabinet). Rezervarea unui astfel de serviciu scrie câte un rând în `bookings` pentru fiecare
+  resursă, în aceeași tranzacție.
+- **Disponibilitatea se calculează doar cu `getAvailability`** (`src/lib/availability`).
+  Calculul pur (`computeAvailability`) nu atinge baza de date și are teste pentru ora de
+  vară/iarnă, zile închise, mai multe resurse și locuri. Orele din program sunt locale
+  (`tenants.timezone`) și se convertesc zi cu zi cu Temporal. Nu calcula ore cu `Date` și
+  offseturi fixe. Sloturile întorc `startLocal` cu offset (`…T03:00:00+02:00`), fiindcă la
+  trecerea la ora de iarnă aceeași oră locală apare de două ori.
 - **Nu verifica disponibilitatea doar în aplicație.** Verifică ca să propui ore, dar lasă
   baza de date să decidă la scriere.
 

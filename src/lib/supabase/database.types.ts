@@ -720,6 +720,7 @@ export type Database = {
       service_resources: {
         Row: {
           created_at: string;
+          requirement: number;
           resource_id: string;
           service_id: string;
           tenant_id: string;
@@ -727,12 +728,14 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           created_at?: string;
+          requirement?: number;
           resource_id: string;
           service_id: string;
           tenant_id: string;
         };
         Update: {
           created_at?: string;
+          requirement?: number;
           resource_id?: string;
           service_id?: string;
           tenant_id?: string;
