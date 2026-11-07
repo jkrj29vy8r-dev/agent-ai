@@ -30,11 +30,13 @@ export type Database = {
           address_form: Database["public"]["Enums"]["address_form"];
           agent_name: string;
           created_at: string;
+          email_signature: string | null;
           extra_instructions: string | null;
           forbidden: string | null;
           greeting: string | null;
           handoff_phone: string | null;
           handoff_rules: string | null;
+          human_hours: string | null;
           tenant_id: string;
           tone: Database["public"]["Enums"]["agent_tone"];
           updated_at: string;
@@ -44,11 +46,13 @@ export type Database = {
           address_form?: Database["public"]["Enums"]["address_form"];
           agent_name?: string;
           created_at?: string;
+          email_signature?: string | null;
           extra_instructions?: string | null;
           forbidden?: string | null;
           greeting?: string | null;
           handoff_phone?: string | null;
           handoff_rules?: string | null;
+          human_hours?: string | null;
           tenant_id: string;
           tone?: Database["public"]["Enums"]["agent_tone"];
           updated_at?: string;
@@ -57,11 +61,13 @@ export type Database = {
           address_form?: Database["public"]["Enums"]["address_form"];
           agent_name?: string;
           created_at?: string;
+          email_signature?: string | null;
           extra_instructions?: string | null;
           forbidden?: string | null;
           greeting?: string | null;
           handoff_phone?: string | null;
           handoff_rules?: string | null;
+          human_hours?: string | null;
           tenant_id?: string;
           tone?: Database["public"]["Enums"]["agent_tone"];
           updated_at?: string;
@@ -181,6 +187,7 @@ export type Database = {
           confirmation_mode: Database["public"]["Enums"]["confirmation_mode"];
           created_at: string;
           max_advance_days: number;
+          max_group_size: number;
           min_notice_min: number;
           required_fields: NonNullable<Json>;
           tenant_id: string;
@@ -193,6 +200,7 @@ export type Database = {
           confirmation_mode?: Database["public"]["Enums"]["confirmation_mode"];
           created_at?: string;
           max_advance_days?: number;
+          max_group_size?: number;
           min_notice_min?: number;
           required_fields?: NonNullable<Json>;
           tenant_id: string;
@@ -204,6 +212,7 @@ export type Database = {
           confirmation_mode?: Database["public"]["Enums"]["confirmation_mode"];
           created_at?: string;
           max_advance_days?: number;
+          max_group_size?: number;
           min_notice_min?: number;
           required_fields?: NonNullable<Json>;
           tenant_id?: string;
@@ -227,6 +236,7 @@ export type Database = {
           customer_id: string | null;
           deposit_amount: number;
           exclusive: boolean;
+          group_id: string | null;
           hold_expires_at: string | null;
           id: string;
           notes: string | null;
@@ -248,6 +258,7 @@ export type Database = {
           customer_id?: string | null;
           deposit_amount?: number;
           exclusive?: boolean;
+          group_id?: string | null;
           hold_expires_at?: string | null;
           id?: string;
           notes?: string | null;
@@ -268,6 +279,7 @@ export type Database = {
           customer_id?: string | null;
           deposit_amount?: number;
           exclusive?: boolean;
+          group_id?: string | null;
           hold_expires_at?: string | null;
           id?: string;
           notes?: string | null;
@@ -365,15 +377,20 @@ export type Database = {
         Row: {
           channel: Database["public"]["Enums"]["channel_type"];
           channel_id: string | null;
+          context: NonNullable<Json>;
           created_at: string;
           customer_id: string | null;
           ended_at: string | null;
           external_ref: string | null;
           id: string;
+          is_test: boolean;
+          model: string | null;
           outcome: Database["public"]["Enums"]["conversation_outcome"] | null;
           started_at: string;
           status: Database["public"]["Enums"]["conversation_status"];
           summary: string | null;
+          summary_data: Json | null;
+          system_prompt: string | null;
           tenant_id: string;
           updated_at: string;
         };
@@ -381,30 +398,40 @@ export type Database = {
         Insert: {
           channel: Database["public"]["Enums"]["channel_type"];
           channel_id?: string | null;
+          context?: NonNullable<Json>;
           created_at?: string;
           customer_id?: string | null;
           ended_at?: string | null;
           external_ref?: string | null;
           id?: string;
+          is_test?: boolean;
+          model?: string | null;
           outcome?: Database["public"]["Enums"]["conversation_outcome"] | null;
           started_at?: string;
           status?: Database["public"]["Enums"]["conversation_status"];
           summary?: string | null;
+          summary_data?: Json | null;
+          system_prompt?: string | null;
           tenant_id: string;
           updated_at?: string;
         };
         Update: {
           channel?: Database["public"]["Enums"]["channel_type"];
           channel_id?: string | null;
+          context?: NonNullable<Json>;
           created_at?: string;
           customer_id?: string | null;
           ended_at?: string | null;
           external_ref?: string | null;
           id?: string;
+          is_test?: boolean;
+          model?: string | null;
           outcome?: Database["public"]["Enums"]["conversation_outcome"] | null;
           started_at?: string;
           status?: Database["public"]["Enums"]["conversation_status"];
           summary?: string | null;
+          summary_data?: Json | null;
+          system_prompt?: string | null;
           tenant_id?: string;
           updated_at?: string;
         };
@@ -482,6 +509,7 @@ export type Database = {
           id: string;
           question: string;
           sort_order: number;
+          source: string;
           tenant_id: string;
           updated_at: string;
         };
@@ -493,6 +521,7 @@ export type Database = {
           id?: string;
           question: string;
           sort_order?: number;
+          source?: string;
           tenant_id: string;
           updated_at?: string;
         };
@@ -503,6 +532,7 @@ export type Database = {
           id?: string;
           question?: string;
           sort_order?: number;
+          source?: string;
           tenant_id?: string;
           updated_at?: string;
         };
@@ -619,38 +649,50 @@ export type Database = {
       };
       messages: {
         Row: {
+          api_content: string | null;
           content: string | null;
           conversation_id: string;
           created_at: string;
           id: string;
+          is_error: boolean;
           role: Database["public"]["Enums"]["message_role"];
+          seq: number;
           tenant_id: string;
           tool_input: Json | null;
           tool_name: string | null;
           tool_output: Json | null;
+          tool_use_id: string | null;
         };
         ComputedFields: never;
         Insert: {
+          api_content?: string | null;
           content?: string | null;
           conversation_id: string;
           created_at?: string;
           id?: string;
+          is_error?: boolean;
           role: Database["public"]["Enums"]["message_role"];
+          seq?: never;
           tenant_id: string;
           tool_input?: Json | null;
           tool_name?: string | null;
           tool_output?: Json | null;
+          tool_use_id?: string | null;
         };
         Update: {
+          api_content?: string | null;
           content?: string | null;
           conversation_id?: string;
           created_at?: string;
           id?: string;
+          is_error?: boolean;
           role?: Database["public"]["Enums"]["message_role"];
+          seq?: never;
           tenant_id?: string;
           tool_input?: Json | null;
           tool_name?: string | null;
           tool_output?: Json | null;
+          tool_use_id?: string | null;
         };
         Relationships: [
           {

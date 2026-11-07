@@ -53,6 +53,10 @@ src/
   lib/channels.ts         cele trei canale: etichetă, iconiță, clasele de culoare
   lib/verticals.ts        domeniile (banda „Pentru cine” și formularul de pilot)
   lib/availability/       getAvailability (încarcă datele) + computeAvailability (calcul pur, testat)
+  lib/agent/              nucleul agentului: prompturi, bucla de tool use, unelte, rezumat
+  lib/auth/member.ts      requireMember(): utilizatorul logat și firma lui (sub RLS)
+  app/intra/              logarea
+  app/dashboard/          dashboard-ul firmei; testeaza-agentul/ = chat de test cu uneltele vizibile
   lib/utils.ts            cn() cu tokenii înregistrați
   proxy.ts                reîmprospătează sesiunea Supabase
 supabase/
@@ -195,6 +199,43 @@ create policy "services: proprietarul șterge" on public.services
 `supabase/seed.sql` (rulat de `npm run db:reset`) creează Salonul Ana: 3 angajați,
 8 servicii, program, 15 întrebări frecvente, 2 clienți și 2 rezervări. Contul demo este
 `demo@salon-ana.test` / `parola-demo-123`, doar local.
+
+## Agentul
+
+- **Model:** `claude-opus-5-5`, gândire adaptivă, efort `medium` (rezumatul: `low`), cu
+  `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`) pentru refuzuri. Toate
+  sunt în `src/lib/agent/config.ts`; nu le scrie în altă parte.
+- **Prompturile** sunt în `src/lib/agent/prompts.ts`, copiate din planul produsului.
+  Variabilele vin din baza de date (`buildSystemPrompt`). `renderTemplate` refuză un prompt
+  cu variabile lipsă.
+- **Istoricul se trimite doar prin adăugare.** Claude Opus 5.5 leagă blocurile de gândire de
+  conversație: dacă se schimbă ceva în urmă (promptul de sistem, lista de unelte, un mesaj
+  vechi), blocurile se pierd, iar pe conturile noi API-ul răspunde 400. De aceea:
+  - promptul de sistem se construiește o dată, la `startConversation`, și se salvează în
+    `conversations.system_prompt`; nu se reconstruiește în aceeași conversație;
+  - ora curentă intră la fiecare mesaj al clientului ca mesaj `role: "system"` adăugat în
+    istoric, nu prin schimbarea promptului;
+  - lista de unelte are ordine fixă (`TOOLS` în `tools/registry.ts`);
+  - `messages.api_content` păstrează JSON-ul exact trimis sau primit, în coloană `text`
+    (`jsonb` ar reordona cheile). `buildApiMessages` reconstruiește istoricul din el.
+    Nu edita și nu șterge rânduri din `messages`.
+- **Fiecare mesaj și fiecare apel de unealtă se salvează** în `messages` (`customer`,
+  `system`, `agent`, `tool`), iar consumul de tokeni în `usage_events`.
+- **Uneltele** (`src/lib/agent/tools/`) primesc firma și clientul din `ToolContext`, adică
+  din canal, niciodată din ce trimite modelul. Intrarea se validează cu zod (aceeași schemă
+  generează definiția trimisă la API). O unealtă nu aruncă excepții spre model: întoarce
+  `{ ok: false, code, error }`. Mutarea, anularea și căutarea rezervărilor merg doar pe
+  numărul de telefon verificat de canal. Confirmarea merge doar pe hold-ul pus în aceeași
+  conversație.
+- **Unealtă nouă:** `defineTool({ name, description, channels?, input, run })` într-un fișier
+  din `tools/`, apoi adăugată la finalul lui `TOOLS`. Descrierea spune *când* se folosește.
+  Adaug-o în `tools.integration.test.ts`.
+- **La final** `endConversation` rulează promptul de rezumat cu ieșire structurată (zod),
+  salvează `summary` / `summary_data` / `outcome`, iar întrebările fără răspuns devin
+  `faq_items` inactive cu `source = 'suggestion'`.
+- **Testare:** `npm run test:db` rulează bucla cu un client Claude simulat (fără cost) și
+  uneltele pe Supabase local. Pentru o probă reală pune `ANTHROPIC_API_KEY` în `.env.local`
+  și folosește `/dashboard/testeaza-agentul` (cont demo din seed).
 
 ## Regula 2: toate componentele folosesc tokenii de design
 

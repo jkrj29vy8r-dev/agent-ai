@@ -11,6 +11,17 @@ export const VERTICALS = [
 
 export type VerticalId = (typeof VERTICALS)[number]["id"] | "altceva"
 
+/** Cum se numește o firmă din domeniu, la singular (pentru promptul agentului). */
+export const VERTICAL_SINGULAR: Record<string, string> = {
+  salon: "salon de înfrumusețare",
+  dentar: "clinică dentară",
+  veterinar: "cabinet veterinar",
+  service: "service auto",
+  restaurant: "restaurant",
+  pensiune: "pensiune",
+  transport: "firmă de transport persoane",
+}
+
 export const VERTICAL_OPTIONS: { id: VerticalId; label: string }[] = [
   ...VERTICALS.map(({ id, label }) => ({ id, label })),
   { id: "altceva", label: "Alt domeniu" },

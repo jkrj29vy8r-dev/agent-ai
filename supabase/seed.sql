@@ -112,22 +112,24 @@ insert into public.availability_exceptions (tenant_id, resource_id, period, kind
    tstzrange('2026-11-23 00:00 Europe/Bucharest', '2026-11-28 00:00 Europe/Bucharest'), 'closed', 'Ana în concediu');
 
 -- ── Regulile de rezervare și agentul ────────────────────────────────────
-insert into public.booking_rules (tenant_id, min_notice_min, max_advance_days, cancellation_policy, cancellation_notice_hours, confirmation_mode, required_fields)
+insert into public.booking_rules (tenant_id, min_notice_min, max_advance_days, cancellation_policy, cancellation_notice_hours, confirmation_mode, required_fields, max_group_size)
 values (
   'b0000000-0000-4000-8000-000000000001', 120, 60,
   'Anularea e gratuită cu cel puțin 24 de ore înainte. La anulări mai târzii, avansul se reține.',
-  24, 'auto', '["nume", "telefon"]'
+  24, 'auto', '["nume", "telefon"]', 3
 );
 
-insert into public.agent_settings (tenant_id, agent_name, tone, address_form, greeting, extra_instructions, forbidden, handoff_rules, handoff_phone)
+insert into public.agent_settings (tenant_id, agent_name, tone, address_form, greeting, extra_instructions, forbidden, handoff_rules, handoff_phone, human_hours, email_signature)
 values (
   'b0000000-0000-4000-8000-000000000001',
   'Clara', 'friendly', 'dumneavoastra',
-  'Bună ziua! Sunt Clara, asistentul virtual al Salonului Ana. Cu ce vă pot ajuta?',
+  'Bună ziua!',
   'Dacă clientul nu știe ce serviciu vrea, întreabă cât de lung e părul și ce rezultat își dorește.',
   'Nu dă sfaturi medicale sau dermatologice. Nu promite reduceri și nu negociază prețul.',
   'Predă la om cererile pentru evenimente, plângerile și orice întrebare despre alergii.',
-  '+40700000001'
+  '+40700000001',
+  'luni–vineri, 9:00–17:00',
+  'Clara, asistentul virtual al Salonului Ana'
 );
 
 -- ── Canale ──────────────────────────────────────────────────────────────

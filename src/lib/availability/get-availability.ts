@@ -25,6 +25,8 @@ export type GetAvailabilityOptions = {
   now?: Instantish
   /** Clientul Supabase. Implicit cel de backend (cheia secretă), care ocolește RLS. */
   client?: SupabaseClient<Database>
+  /** Rezervări de ignorat (de exemplu cea care se mută la altă oră). */
+  excludeBookingIds?: string[]
 }
 
 // Aceleași valori implicite ca în tabelul booking_rules.
@@ -100,7 +102,7 @@ export async function getAvailability(
       .overlaps("period", toTstzRange(new Date(fromMs - DAY_MS).toISOString(), new Date(toMs + DAY_MS).toISOString())),
     db
       .from("bookings")
-      .select("resource_id, period, seats, status, hold_expires_at")
+      .select("id, resource_id, period, seats, status, hold_expires_at")
       .eq("tenant_id", tenantId)
       .in("resource_id", resourceIds)
       .in("status", ["hold", "pending", "confirmed"])
@@ -143,6 +145,7 @@ export async function getAvailability(
       return span ? [{ resourceId: x.resource_id, kind: x.kind, ...span }] : []
     }),
     bookings: bookings.data.flatMap((b): ExistingBooking[] => {
+      if (options.excludeBookingIds?.includes(b.id)) return []
       const span = parseTstzRange(b.period)
       return span
         ? [{ resourceId: b.resource_id, seats: b.seats, status: b.status, holdExpiresAt: b.hold_expires_at, ...span }]
