@@ -1,0 +1,391 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Numele utilitarelor (bg-primary, rounded-panel, shadow-plate...) vin din
+   tailwind.config.ts. Valorile lor sunt variabilele de mai jos. */
+@config "../../tailwind.config.ts";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Ștergem ce aduce Tailwind implicit, ca să existe DOAR tokenii noștri.
+   `bg-red-500`, `shadow-lg` cu umbră aruncată, `animate-pulse` nu mai există. */
+@theme {
+  --color-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+  --radius-*: initial;
+  --font-*: initial;
+  --animate-*: initial;
+  --blur-*: initial;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   1. PRIMITIVE — culorile centralei. Nu se folosesc direct în componente;
+      doar tokenii semantici de mai jos le referă.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  /* smalțul panoului (gri-verde) */
+  --enamel-50: #f8faf7;
+  --enamel-100: #eef1ec;
+  --enamel-200: #e2e8e1;
+  --enamel-300: #cfd8cf;
+  --enamel-400: #b4c0b5;
+
+  /* grafitul (text și metal) */
+  --graphite-500: #7a877f;
+  --graphite-600: #5d6a62;
+  --graphite-700: #3a4540;
+  --graphite-900: #1c2420;
+
+  /* bachelita (primară) */
+  --bakelite-500: #1e4d3b;
+  --bakelite-600: #163b2d;
+
+  /* lampa de semnal */
+  --amber-400: #f0a830;
+  --lamp-unlit: #c9cfc4;
+
+  /* cablurile */
+  --cable-red: #b83a28;
+  --cable-blue: #2b5d8f;
+  --cable-graphite: #4a4f4c;
+
+  /* stări */
+  --signal-green: #2a7347;
+  --signal-ochre: #8a5a0e;
+  --signal-red: #b3261e;
+
+  /* panoul noaptea */
+  --night-950: #0f1412;
+  --night-900: #151b18;
+  --night-850: #1d2521;
+  --night-800: #26302b;
+  --night-700: #33403a;
+  --night-600: #6b7a71;
+  --night-400: #94a39a;
+  --night-200: #c5cfc7;
+  --night-100: #e8ede7;
+  --bakelite-night: #7dbfa2;
+  --bakelite-night-hover: #96cdb4;
+  --bakelite-night-ink: #10201a;
+  --amber-night: #f4b54a;
+  --cable-red-night: #e2715c;
+  --cable-blue-night: #6e9fd4;
+  --cable-graphite-night: #a6aea9;
+  --signal-green-night: #62c08a;
+  --signal-ochre-night: #e3a94f;
+  --signal-red-night: #f28b82;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   2. TOKENI SEMANTICI — light (implicit)
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  color-scheme: light;
+
+  /* suprafețe */
+  --background: var(--enamel-100);
+  --panel: var(--enamel-200);
+  --panel-sunken: var(--enamel-300);
+  --card: var(--enamel-200);
+  --popover: var(--enamel-50);
+  --secondary: var(--enamel-200);
+  --muted: var(--enamel-200);
+  --accent: var(--enamel-200);
+
+  /* text */
+  --heading: var(--graphite-900);
+  --foreground: var(--graphite-700);
+  --muted-foreground: var(--graphite-600);
+  --card-foreground: var(--graphite-700);
+  --popover-foreground: var(--graphite-700);
+  --secondary-foreground: var(--graphite-900);
+  --accent-foreground: var(--graphite-900);
+
+  /* primară: bachelita */
+  --primary: var(--bakelite-500);
+  --primary-hover: var(--bakelite-600);
+  --primary-foreground: var(--enamel-100);
+
+  /* borduri și câmpuri */
+  --border: var(--enamel-300);
+  --border-strong: var(--enamel-400);
+  --input: var(--graphite-500); /* bordura câmpurilor: minimum 3:1 */
+  --input-background: var(--enamel-50);
+  --ring: var(--bakelite-500);
+  --overlay: rgb(28 36 32 / 0.45);
+
+  /* stări */
+  --success: var(--signal-green);
+  --success-foreground: var(--enamel-50);
+  --warning: var(--signal-ochre);
+  --warning-foreground: var(--enamel-50);
+  --destructive: var(--signal-red);
+  --destructive-foreground: var(--enamel-50);
+
+  /* lampa: DOAR „activ acum”; niciodată text pe fundal deschis */
+  --lamp: var(--amber-400);
+  --lamp-halo: rgb(240 168 48 / 0.35);
+  --lamp-off: var(--lamp-unlit);
+  --lamp-ring: var(--graphite-700);
+
+  /* cablurile canalelor */
+  --channel-phone: var(--cable-red);
+  --channel-whatsapp: var(--cable-blue);
+  --channel-email: var(--cable-graphite);
+
+  /* grafice */
+  --chart-1: var(--bakelite-500);
+  --chart-2: var(--cable-blue);
+  --chart-3: var(--cable-red);
+  --chart-4: var(--cable-graphite);
+  --chart-5: var(--signal-ochre);
+
+  /* bara laterală (shadcn sidebar) */
+  --sidebar: var(--enamel-200);
+  --sidebar-foreground: var(--graphite-700);
+  --sidebar-primary: var(--bakelite-500);
+  --sidebar-primary-foreground: var(--enamel-100);
+  --sidebar-accent: var(--enamel-300);
+  --sidebar-accent-foreground: var(--graphite-900);
+  --sidebar-border: var(--enamel-300);
+  --sidebar-ring: var(--bakelite-500);
+
+  /* adâncime: tablă presată, fără umbre aruncate */
+  --highlight: rgb(255 255 255 / 0.7);
+  --depth-plate: inset 0 1px 0 0 var(--highlight);
+  --depth-socket: inset 0 1px 2px 0 rgb(28 36 32 / 0.28);
+  --depth-lamp: 0 0 0 3px var(--lamp-halo), 0 0 12px 2px var(--lamp-halo);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   3. TOKENI SEMANTICI — dark: panoul noaptea
+   ═══════════════════════════════════════════════════════════════════════ */
+.dark {
+  color-scheme: dark;
+
+  --background: var(--night-900);
+  --panel: var(--night-850);
+  --panel-sunken: var(--night-950);
+  --card: var(--night-850);
+  --popover: var(--night-850);
+  --secondary: var(--night-800);
+  --muted: var(--night-800);
+  --accent: var(--night-800);
+
+  --heading: var(--night-100);
+  --foreground: var(--night-200);
+  --muted-foreground: var(--night-400);
+  --card-foreground: var(--night-200);
+  --popover-foreground: var(--night-200);
+  --secondary-foreground: var(--night-100);
+  --accent-foreground: var(--night-100);
+
+  --primary: var(--bakelite-night);
+  --primary-hover: var(--bakelite-night-hover);
+  --primary-foreground: var(--bakelite-night-ink);
+
+  --border: var(--night-800);
+  --border-strong: var(--night-700);
+  --input: var(--night-600);
+  --input-background: var(--night-950);
+  --ring: var(--bakelite-night);
+  --overlay: rgb(5 8 7 / 0.65);
+
+  --success: var(--signal-green-night);
+  --success-foreground: var(--night-950);
+  --warning: var(--signal-ochre-night);
+  --warning-foreground: var(--night-950);
+  --destructive: var(--signal-red-night);
+  --destructive-foreground: var(--night-950);
+
+  --lamp: var(--amber-night);
+  --lamp-halo: rgb(244 181 74 / 0.4);
+  --lamp-off: var(--graphite-700);
+  --lamp-ring: var(--night-400);
+
+  --channel-phone: var(--cable-red-night);
+  --channel-whatsapp: var(--cable-blue-night);
+  --channel-email: var(--cable-graphite-night);
+
+  --chart-1: var(--bakelite-night);
+  --chart-2: var(--cable-blue-night);
+  --chart-3: var(--cable-red-night);
+  --chart-4: var(--cable-graphite-night);
+  --chart-5: var(--signal-ochre-night);
+
+  --sidebar: var(--night-850);
+  --sidebar-foreground: var(--night-200);
+  --sidebar-primary: var(--bakelite-night);
+  --sidebar-primary-foreground: var(--bakelite-night-ink);
+  --sidebar-accent: var(--night-800);
+  --sidebar-accent-foreground: var(--night-100);
+  --sidebar-border: var(--night-800);
+  --sidebar-ring: var(--bakelite-night);
+
+  --highlight: rgb(255 255 255 / 0.06);
+  --depth-socket: inset 0 1px 2px 0 rgb(0 0 0 / 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   4. TOKENI INDEPENDENȚI DE TEMĂ — tipografie, spațiu, formă, mișcare
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  /* fonturi: --font-archivo vine din next/font, în layout.tsx */
+  --family-text: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --family-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --stretch-display: 125%; /* titluri: litere gravate */
+  --stretch-plate: 118%; /* plăcuțe */
+  --stretch-text: 100%;
+
+  /* scara tipografică (raport ~1.15–1.25), corp 17px */
+  --size-xs: 0.8125rem; /* 13 */
+  --size-sm: 0.9375rem; /* 15 */
+  --size-base: 1.0625rem; /* 17 */
+  --size-lg: 1.1875rem; /* 19 */
+  --size-xl: 1.375rem; /* 22 */
+  --size-2xl: 1.625rem; /* 26 */
+  --size-3xl: 2rem; /* 32 */
+  --size-4xl: 2.5rem; /* 40 */
+  --size-5xl: 3.25rem; /* 52 */
+  --size-6xl: 4rem; /* 64 */
+  --lh-xs: 1.45;
+  --lh-sm: 1.5;
+  --lh-base: 1.6;
+  --lh-lg: 1.5;
+  --lh-xl: 1.35;
+  --lh-2xl: 1.25;
+  --lh-3xl: 1.15;
+  --lh-4xl: 1.1;
+  --lh-5xl: 1.05;
+  --lh-6xl: 1;
+  --measure: 68ch; /* rânduri de cel mult 68 de caractere */
+
+  /* spațiere: pas de 4px (Tailwind `--spacing`), plus distanțe de layout */
+  --spacing: 0.25rem;
+  --space-gutter: 1rem; /* marginea paginii pe mobil */
+  --space-panel: 1.5rem; /* interiorul unui panou */
+  --space-section: 4rem; /* între secțiuni */
+  --page-width: 76rem;
+
+  /* formă */
+  --round-xs: 2px;
+  --round-control: 4px; /* butoane, câmpuri */
+  --round-panel: 10px; /* panouri */
+
+  /* mișcare: comutatoare mecanice, scurte, o singură dată */
+  --motion-instant: 150ms;
+  --motion-fast: 200ms;
+  --motion-base: 300ms;
+  --motion-slow: 480ms;
+  --curve-switch: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --curve-settle: cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --space-gutter: 1.5rem;
+    --space-panel: 2rem;
+    --space-section: 6rem;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   5. BAZĂ
+   ═══════════════════════════════════════════════════════════════════════ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    font-stretch: var(--stretch-text);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-base text-foreground antialiased;
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display font-bold text-heading;
+    font-stretch: var(--stretch-display);
+    text-wrap: balance;
+    text-align: start;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--primary) 22%, transparent);
+    color: var(--heading);
+  }
+
+  /* Iconițe Lucide: linie de 1.5px */
+  svg.lucide {
+    stroke-width: 1.5;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 1ms !important;
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   6. UTILITARE CU NUME — compun tokeni, nu introduc valori noi
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* literele gravate de pe plăcuțele de alamă */
+@utility type-engraved {
+  font-family: var(--family-display);
+  font-weight: 700;
+  font-stretch: var(--stretch-display);
+  color: var(--heading);
+}
+
+/* textul mic de pe plăcuțe: 600, lărgit 118%, literă mică (nu majuscule) */
+@utility type-plate {
+  font-family: var(--family-text);
+  font-size: var(--size-xs);
+  line-height: var(--lh-xs);
+  font-weight: 600;
+  font-stretch: var(--stretch-plate);
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+/* tabla presată: bordură 1px + linie deschisă sus */
+@utility surface-plate {
+  background-color: var(--panel);
+  border: 1px solid var(--border-strong);
+  box-shadow: var(--depth-plate);
+}
+
+/* containerul de pagină */
+@utility page {
+  width: 100%;
+  max-width: var(--page-width);
+  margin-inline: auto;
+  padding-inline: var(--space-gutter);
+}
