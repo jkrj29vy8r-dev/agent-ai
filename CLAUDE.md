@@ -87,27 +87,42 @@ garanția asta o dă baza de date, nu codul aplicației.
 1. **Orice tabel nou din `public` are `tenant_id uuid not null references public.tenants (id)
    on delete cascade`** și un index pe `tenant_id`. Singura excepție e `tenants`, unde `id`
    *este* tenant_id-ul.
-2. **RLS e activat în aceeași migrație în care se creează tabelul**, cu politici pentru
-   fiecare operație folosită. Politicile folosesc funcțiile din schema `private`:
-   - `private.is_tenant_member(tenant_id)`: utilizatorul e membru al firmei;
-   - `private.has_tenant_role(tenant_id, array['owner']::public.member_role[])`: are rolul cerut.
-3. **Schema se schimbă doar prin migrații** în `supabase/migrations/`
+2. **Referințele între tabele sunt chei compuse `(tenant_id, x_id)`.** Fiecare tabel
+   referit are `unique (tenant_id, id)`, iar copilul are
+   `foreign key (tenant_id, resource_id) references public.resources (tenant_id, id)`. Așa,
+   baza de date refuză (eroarea `23503`) o rezervare din firma A care arată spre resursa
+   firmei B, chiar dacă cineva îi știe ID-ul.
+3. **RLS e activat în aceeași migrație în care se creează tabelul**, cu politici pentru
+   fiecare operație folosită. Tiparul este:
+   - membrii firmei: `tenant_id in (select private.member_tenant_ids())`;
+   - un rol anume: `tenant_id in (select private.member_tenant_ids(array['owner']::public.member_role[]))`.
+
+   `(select private.member_tenant_ids())` nu depinde de rând, deci Postgres calculează lista
+   firmelor utilizatorului o singură dată pe interogare. Nu scrie
+   `private.is_tenant_member(tenant_id)` în politici noi: primește coloana rândului și se
+   evaluează pe fiecare rând. Acea funcție rămâne doar pentru `tenants` și `members`.
+   Matricea folosită: date operaționale = membrii citesc, adaugă și modifică, iar doar
+   proprietarul șterge; setări (`booking_rules`, `agent_settings`, `channels`) = doar
+   proprietarul scrie; `usage_events` = doar backend-ul scrie.
+4. **Schema se schimbă doar prin migrații** în `supabase/migrations/`
    (`npx supabase migration new <nume>`), niciodată din dashboard.
-4. **Clientul cu cheia secretă (`createAdminClient`) ocolește RLS.** Se folosește doar în
+5. **Clientul cu cheia secretă (`createAdminClient`) ocolește RLS.** Se folosește doar în
    backend-ul agentului (webhook-uri, joburi), iar acolo **orice interogare filtrează
-   explicit după `tenant_id`**, luat din canalul care a primit mesajul, nu din ce spune
-   clientul.
-5. **Funcțiile `security definer`** au `set search_path = ''`, nume complet calificate și
+   explicit după `tenant_id`**, luat din canalul care a primit mesajul (`channels` are
+   `(type, address)` unic global), nu din ce spune clientul.
+6. **Funcțiile `security definer`** au `set search_path = ''`, nume complet calificate și
    verifică singure `auth.uid()` și apartenența la firmă.
-6. **Singura excepție: schema `platform`**, pentru datele platformei care nu aparțin unei
+7. **Singura excepție: schema `platform`**, pentru datele platformei care nu aparțin unei
    firme (de exemplu `platform.pilot_requests`, cererile din formularul de pilot, care vin
    înainte să existe un tenant). Schema nu e expusă prin API, are RLS fără politici și e
    accesibilă doar lui `service_role`, printr-o funcție din `public` cu `execute` doar pentru
    `service_role`. Nu pune acolo nimic ce aparține unei firme.
-7. **`npm run db:test` trebuie să treacă.** `supabase/tests/database/tenant_rls.test.sql`
-   pică automat dacă un tabel din `public` nu are `tenant_id` NOT NULL, cheia străină către
-   `tenants` sau RLS. Pentru tabelele noi importante, adaugă și un test de izolare
-   (utilizatorul firmei A nu vede rândurile firmei B).
+8. **`npm run db:test` trebuie să treacă.** Testele din `supabase/tests/database/`:
+   - `tenant_rls.test.sql` pică automat dacă un tabel din `public` nu are `tenant_id` NOT
+     NULL, cheia străină către `tenants` sau RLS;
+   - `tenant_isolation.test.sql` pune câte un rând în fiecare tabel pentru două firme și
+     verifică faptul că o firmă nu le poate citi, modifica, șterge sau referi pe ale celeilalte.
+     **Un tabel nou se adaugă în `pg_temp.fill` și în lista de verificări.**
 
 Șablon pentru un tabel nou:
 
@@ -117,7 +132,8 @@ create table public.services (
   tenant_id   uuid not null references public.tenants (id) on delete cascade,
   name        text not null,
   created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  updated_at  timestamptz not null default now(),
+  unique (tenant_id, id) -- ținta cheilor compuse din tabelele copil
 );
 
 create index services_tenant_id_idx on public.services (tenant_id);
@@ -128,26 +144,42 @@ create trigger services_set_updated_at
 
 alter table public.services enable row level security;
 
-create policy "services: membrii citesc"
-  on public.services for select to authenticated
-  using ((select private.is_tenant_member(tenant_id)));
+create policy "services: membrii citesc" on public.services
+  for select to authenticated using (tenant_id in (select private.member_tenant_ids()));
 
-create policy "services: membrii adaugă"
-  on public.services for insert to authenticated
-  with check ((select private.is_tenant_member(tenant_id)));
+create policy "services: membrii adaugă" on public.services
+  for insert to authenticated with check (tenant_id in (select private.member_tenant_ids()));
 
-create policy "services: membrii modifică"
-  on public.services for update to authenticated
-  using ((select private.is_tenant_member(tenant_id)))
-  with check ((select private.is_tenant_member(tenant_id)));
+create policy "services: membrii modifică" on public.services
+  for update to authenticated
+  using (tenant_id in (select private.member_tenant_ids()))
+  with check (tenant_id in (select private.member_tenant_ids()));
 
-create policy "services: proprietarul șterge"
-  on public.services for delete to authenticated
-  using ((select private.has_tenant_role(tenant_id, array['owner']::public.member_role[])));
+create policy "services: proprietarul șterge" on public.services
+  for delete to authenticated
+  using (tenant_id in (select private.member_tenant_ids(array['owner']::public.member_role[])));
 ```
 
-Apelul `(select …)` în jurul funcției e intenționat: Postgres îl evaluează o singură dată pe
-interogare, nu pe fiecare rând.
+### Rezervările
+
+- **Nu se suprapun.** Constrângerea `bookings_no_overlap` (excludere GiST pe
+  `resource_id` + `period`) respinge orice rezervare `hold`, `pending` sau `confirmed` care se
+  suprapune pe aceeași resursă exclusivă. Intervalele sunt `[început, sfârșit)`. Resursele
+  `shared` (locuri) se verifică pe capacitate, în trigger.
+- **Eroarea `23P01` înseamnă „locul e luat”**, fie suprapunere, fie capacitate depășită, fie
+  hold expirat. Aplicația și agentul o tratează propunând alt interval, nu ca eroare tehnică.
+- **Hold-ul ține 10 minute** (`private.hold_duration()`). Expirarea o pune baza de date: nu
+  se poate alege și nu se poate prelungi, iar un hold expirat nu mai poate fi confirmat. Un
+  hold expirat nu blochează pe nimeni: triggerul îl marchează `expired` când cineva vrea ora,
+  iar `pg_cron` le curăță în fiecare minut.
+- **Nu verifica disponibilitatea doar în aplicație.** Verifică ca să propui ore, dar lasă
+  baza de date să decidă la scriere.
+
+### Date de test
+
+`supabase/seed.sql` (rulat de `npm run db:reset`) creează Salonul Ana: 3 angajați,
+8 servicii, program, 15 întrebări frecvente, 2 clienți și 2 rezervări. Contul demo este
+`demo@salon-ana.test` / `parola-demo-123`, doar local.
 
 ## Regula 2: toate componentele folosesc tokenii de design
 
